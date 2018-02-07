@@ -4,64 +4,62 @@ import javax.inject.Named;
 import java.util.Objects;
 import java.util.TreeMap;
 
-interface ExampleInterface { // Our work unit.
+import static demo.Constants.FIRSTNAME;
+import static demo.Constants.LASTNAME;
+
+interface ExampleInterface { // We need an instance of _this_ interface!
     String getName();
 }
 
 class Constants {
-    public static String FIRSTNAME = "firstname";
-    public static String LASTNAME = "lastname";
-}
-
-class ConfigurationMap extends TreeMap<String, String> {
+    public static final String FIRSTNAME = "firstname";
+    public static final String LASTNAME = "lastname";
 }
 
 @dagger.Module
-        // What help does Dagger need?
-class ExampleModule {
+class ConfigurationMap extends TreeMap<String, String> {
     @dagger.Provides
-    ExampleInterface provideExampleInterface(
-            @Named("firstname") String firstName,
-            @Named("lastname") String lastName
-    ) {
+    public ConfigurationMap getConfigurationMap() {
+        return this;
+    }
+}
+
+// What help does Dagger need?
+@dagger.Module
+class ExampleModule {
+
+    @dagger.Provides
+    ExampleInterface provideExampleInterface(@Named(FIRSTNAME) String firstName, @Named(LASTNAME) String lastName) {
         return () -> "Name: " + firstName + " " + lastName;
     }
 
     @dagger.Provides
-    @Named("firstname")
+    @Named(FIRSTNAME)
     String provideFirstName(ConfigurationMap map) {
-        return Objects.requireNonNull(map.get("firstname"), "firstname" + " not set");
+        return Objects.requireNonNull(map.get(FIRSTNAME), FIRSTNAME + " not set");
     }
 
     @dagger.Provides
-    @Named("lastname")
+    @Named(LASTNAME)
     String provideLastName(ConfigurationMap map) {
-        return Objects.requireNonNull(map.get("lastname"), "lastname" + " not set");
+        return Objects.requireNonNull(map.get(LASTNAME), LASTNAME + " not set");
     }
-
-    @dagger.Provides
-    public ConfigurationMap getConfigurationMap() {
-        ConfigurationMap map = new ConfigurationMap();
-        map.put("firstname", "Edward");
-        map.put("lastname", "Snowden");
-        return map;
-    }
-
 }
 
 public class Main {
-    // What do we need Dagger to build?
-    @dagger.Component(modules = ExampleModule.class)
+
+    // What do we need Dagger to build and what information should Dagger use?
+    @dagger.Component(modules = {ExampleModule.class, ConfigurationMap.class})
     interface ExampleComponent {
         ExampleInterface example();
     }
 
     public static void main(String[] args) throws Exception {
-        //ConfigurationMap map = new ConfigurationMap();
-        //map.put("firstname", "Edward");
-        //map.put("lastname", "Snowden");
+        ConfigurationMap map = new ConfigurationMap();
+        map.put("firstname", "Edward");
+        map.put("lastname", "Snowden");
         // If compilation fails, see README.md
-        ExampleComponent daggerGeneratedComponent = DaggerMain_ExampleComponent.builder().build();
+        ExampleComponent daggerGeneratedComponent = DaggerMain_ExampleComponent.builder().configurationMap(map).build();
 
         ExampleInterface example = daggerGeneratedComponent.example();
         System.out.println(example.getName());
