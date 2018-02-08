@@ -6,7 +6,7 @@ Dagger to inject configuration strings determined at runtime.
 
 _Note: This builds on https://github.com/ravn/dagger2-hello-world
 which explains the minimal amount of work needed to have Dagger2
-work._
+work.  This includes not being able to compile and/or run the project._
 
 Why use `@Named("...") String`?
 ===
